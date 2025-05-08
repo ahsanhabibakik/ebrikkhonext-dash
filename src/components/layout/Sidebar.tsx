@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useUserStore } from "@/store/useUserStore";
 import {
-  LayoutDashboard,
+  Home,
   Package,
   Users,
   ShoppingCart,
@@ -24,7 +24,7 @@ export function Sidebar() {
   const routes = [
     {
       label: "Dashboard",
-      icon: LayoutDashboard,
+      icon: Home,
       href: "/dashboard",
       color: "text-slate-500",
     },
