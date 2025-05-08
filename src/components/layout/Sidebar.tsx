@@ -10,8 +10,12 @@ import {
   Settings,
   FileText,
   ChevronDown,
-  Layers,
-  Tags
+  Tags,
+  Menu,
+  PenTool,
+  Bell,
+  LayoutDashboard,
+  ChevronRight
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -27,7 +31,7 @@ interface SidebarItemProps {
 const sidebarItems: SidebarItemProps[] = [
   {
     label: "Dashboard",
-    icon: Home,
+    icon: LayoutDashboard,
     href: "/dashboard",
   },
   {
@@ -36,6 +40,7 @@ const sidebarItems: SidebarItemProps[] = [
     subItems: [
       { label: "All Products", href: "/dashboard/products" },
       { label: "Add New", href: "/dashboard/products/new" },
+      { label: "Categories", href: "/dashboard/categories" },
     ]
   },
   {
@@ -44,6 +49,7 @@ const sidebarItems: SidebarItemProps[] = [
     subItems: [
       { label: "All Categories", href: "/dashboard/categories" },
       { label: "Add New", href: "/dashboard/categories/new" },
+      { label: "Manage Structure", href: "/dashboard/categories/structure" },
     ]
   },
   {
@@ -52,14 +58,42 @@ const sidebarItems: SidebarItemProps[] = [
     subItems: [
       { label: "All Orders", href: "/dashboard/orders" },
       { label: "Pending", href: "/dashboard/orders/pending" },
+      { label: "Processing", href: "/dashboard/orders/processing" },
       { label: "Shipped", href: "/dashboard/orders/shipped" },
     ]
   },
-  // ...existing routes...
+  {
+    label: "Users",
+    icon: Users,
+    subItems: [
+      { label: "All Users", href: "/dashboard/users" },
+      { label: "Add New", href: "/dashboard/users/new" },
+      { label: "Roles", href: "/dashboard/users/roles" },
+    ]
+  },
+  {
+    label: "Content",
+    icon: PenTool,
+    subItems: [
+      { label: "Pages", href: "/dashboard/content/pages" },
+      { label: "Blog Posts", href: "/dashboard/content/blog" },
+      { label: "Media", href: "/dashboard/content/media" },
+    ]
+  },
+  {
+    label: "Settings",
+    icon: Settings,
+    subItems: [
+      { label: "General", href: "/dashboard/settings" },
+      { label: "Appearance", href: "/dashboard/settings/appearance" },
+      { label: "Notifications", href: "/dashboard/settings/notifications" },
+    ]
+  },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(false);
   const [openItems, setOpenItems] = useState<string[]>([]);
 
   const toggleItem = (label: string) => {
@@ -71,8 +105,22 @@ export function Sidebar() {
   };
 
   return (
-    <div className="h-full border-r bg-slate-50/50 pt-20">
-      <div className="flex flex-col gap-2">
+    <div className={cn(
+      "h-full border-r bg-white transition-all duration-300",
+      collapsed ? "w-16" : "w-64"
+    )}>
+      <div className="flex h-16 items-center justify-between px-4 border-b">
+        {!collapsed && <span className="font-bold text-xl">Ebrikkho</span>}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setCollapsed(!collapsed)}
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+      </div>
+
+      <div className="flex flex-col gap-2 p-4">
         {sidebarItems.map((item) => (
           <div key={item.label}>
             {item.subItems ? (
@@ -87,16 +135,18 @@ export function Sidebar() {
                 >
                   <div className="flex items-center">
                     <item.icon className="h-5 w-5 mr-2" />
-                    {item.label}
+                    {!collapsed && item.label}
                   </div>
-                  <ChevronDown 
-                    className={cn(
-                      "h-4 w-4 transition-transform",
-                      openItems.includes(item.label) && "transform rotate-180"
-                    )} 
-                  />
+                  {!collapsed && (
+                    <ChevronDown 
+                      className={cn(
+                        "h-4 w-4 transition-transform",
+                        openItems.includes(item.label) && "transform rotate-180"
+                      )} 
+                    />
+                  )}
                 </Button>
-                {openItems.includes(item.label) && (
+                {openItems.includes(item.label) && !collapsed && (
                   <div className="pl-6 py-2 space-y-1">
                     {item.subItems.map((subItem) => (
                       <Link
@@ -126,7 +176,7 @@ export function Sidebar() {
                 )}
               >
                 <item.icon className="h-5 w-5 mr-2" />
-                {item.label}
+                {!collapsed && item.label}
               </Link>
             )}
           </div>

@@ -6,9 +6,13 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const { id } = params;
   try {
     await connectToDatabase();
-    const category = await mongoose.models.Category.findById(params.id).populate('parent');
+    const category = await mongoose.models.Category.findById(id).populate('parent');
+    if (!category) {
+      return NextResponse.json({ error: "Category not found" }, { status: 404 });
+    }
     return NextResponse.json(category);
   } catch (error) {
     return NextResponse.json({ error: "Category not found" }, { status: 404 });
@@ -19,11 +23,12 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const { id } = params;
   try {
     await connectToDatabase();
     const data = await request.json();
     const category = await mongoose.models.Category.findByIdAndUpdate(
-      params.id,
+      id,
       data,
       { new: true }
     );
@@ -37,9 +42,10 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const { id } = params;
   try {
     await connectToDatabase();
-    await mongoose.models.Category.findByIdAndDelete(params.id);
+    await mongoose.models.Category.findByIdAndDelete(id);
     return NextResponse.json({ message: "Category deleted" });
   } catch (error) {
     return NextResponse.json({ error: "Failed to delete category" }, { status: 500 });

@@ -103,7 +103,7 @@ export function CategoryForm({ initialData }: CategoryFormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">No Parent</SelectItem>
                     {categories
                       .filter(c => c._id !== initialData?._id)
                       .map((category) => (

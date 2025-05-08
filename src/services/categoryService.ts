@@ -8,6 +8,8 @@ export interface Category {
   image?: string;
   parent?: string;
   status: 'active' | 'inactive';
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export const categoryService = {
