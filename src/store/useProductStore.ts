@@ -1,43 +1,67 @@
 import { create } from 'zustand';
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  stock: number;
-  status: 'draft' | 'published' | 'archived';
-  description: string;
-}
+import { Product, productService } from '@/services/productService';
 
 interface ProductStore {
   products: Product[];
   loading: boolean;
   error: string | null;
-  addProduct: (product: Omit<Product, 'id'>) => void;
-  updateProduct: (id: string, product: Partial<Product>) => void;
-  deleteProduct: (id: string) => void;
-  setLoading: (loading: boolean) => void;
-  setError: (error: string | null) => void;
+  fetchProducts: () => Promise<void>;
+  addProduct: (product: Omit<Product, '_id'>) => Promise<void>;
+  updateProduct: (id: string, product: Partial<Product>) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
 }
 
-export const useProductStore = create<ProductStore>((set) => ({
+export const useProductStore = create<ProductStore>((set, get) => ({
   products: [],
   loading: false,
   error: null,
-  addProduct: (product) => 
-    set((state) => ({
-      products: [...state.products, { ...product, id: crypto.randomUUID() }]
-    })),
-  updateProduct: (id, product) =>
-    set((state) => ({
-      products: state.products.map((p) => 
-        p.id === id ? { ...p, ...product } : p
-      )
-    })),
-  deleteProduct: (id) =>
-    set((state) => ({
-      products: state.products.filter((p) => p.id !== id)
-    })),
-  setLoading: (loading) => set({ loading }),
-  setError: (error) => set({ error }),
+
+  fetchProducts: async () => {
+    set({ loading: true, error: null });
+    try {
+      const products = await productService.getAll();
+      set({ products, loading: false });
+    } catch (error) {
+      set({ error: (error as Error).message, loading: false });
+    }
+  },
+
+  addProduct: async (product) => {
+    set({ loading: true, error: null });
+    try {
+      const newProduct = await productService.create(product);
+      set(state => ({
+        products: [...state.products, newProduct],
+        loading: false
+      }));
+    } catch (error) {
+      set({ error: (error as Error).message, loading: false });
+    }
+  },
+
+  updateProduct: async (id, product) => {
+    set({ loading: true, error: null });
+    try {
+      const updated = await productService.update(id, product);
+      set(state => ({
+        products: state.products.map(p => p._id === id ? updated : p),
+        loading: false
+      }));
+    } catch (error) {
+      set({ error: (error as Error).message, loading: false });
+    }
+  },
+
+  deleteProduct: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      await productService.delete(id);
+      set(state => ({
+        products: state.products.filter(p => p._id !== id),
+        loading: false
+      }));
+    } catch (error) {
+      set({ error: (error as Error).message, loading: false });
+    }
+  },
 }));
