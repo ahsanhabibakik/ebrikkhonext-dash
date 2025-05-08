@@ -5,7 +5,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import { Button } from "@/components/ui/button";
-import { Bold, Italic, Link as LinkIcon, ListOrdered, List } from 'lucide-react';
+import { Bold, Italic, Link as LinkIcon, ListOrderedIcon, List } from 'lucide-react';
 
 interface TipTapEditorProps {
   value: string;
@@ -62,7 +62,7 @@ export function TipTapEditor({ value, onChange }: TipTapEditorProps) {
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           data-active={editor.isActive('orderedList')}
         >
-          <ListOrdered className="h-4 w-4" />
+          <ListOrderedIcon className="h-4 w-4" />
         </Button>
       </div>
       <EditorContent editor={editor} className="prose max-w-full p-4" />

@@ -7,7 +7,7 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 // Define Product type locally if not available in @/types/Product
 type Product = {
-  id: string;
+  _id: string; // Updated to match MongoDB's _id
   name: string;
   price: number;
   // Add more fields as needed
@@ -29,7 +29,7 @@ const ProductsTable = ({ products }: ProductsTableProps) => {
       </thead>
       <tbody className="bg-white divide-y divide-gray-200">
         {products.map((product) => (
-          <tr key={product.id}>
+          <tr key={product._id}>
             <td className="px-6 py-4 whitespace-nowrap">{product.name}</td>
             <td className="px-6 py-4 whitespace-nowrap">{product.price}</td>
             {/* Add more cells as needed */}

@@ -2,7 +2,6 @@
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useUserStore } from "@/store/useUserStore";
 import {
   Home,
   Package,
@@ -10,91 +9,128 @@ import {
   ShoppingCart,
   Settings,
   FileText,
-  Menu,
+  ChevronDown,
+  Layers,
+  Tags
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
-  const pathname = usePathname();
-  const user = useUserStore((state) => state.user);
+interface SidebarItemProps {
+  label: string;
+  icon: any;
+  href?: string;
+  subItems?: { label: string; href: string }[];
+}
 
-  const routes = [
-    {
-      label: "Dashboard",
-      icon: Home,
-      href: "/dashboard",
-      color: "text-slate-500",
-    },
-    {
-      label: "Products",
-      icon: Package,
-      href: "/dashboard/products",
-      color: "text-slate-500",
-    },
-    {
-      label: "Orders",
-      icon: ShoppingCart,
-      href: "/dashboard/orders",
-      color: "text-slate-500",
-    },
-    {
-      label: "Users",
-      icon: Users,
-      href: "/dashboard/users",
-      color: "text-slate-500",
-      role: ["superadmin", "admin"],
-    },
-    {
-      label: "Content",
-      icon: FileText,
-      href: "/dashboard/content",
-      color: "text-slate-500",
-    },
-    {
-      label: "Settings",
-      icon: Settings,
-      href: "/dashboard/settings",
-      color: "text-slate-500",
-    },
-  ];
+const sidebarItems: SidebarItemProps[] = [
+  {
+    label: "Dashboard",
+    icon: Home,
+    href: "/dashboard",
+  },
+  {
+    label: "Products",
+    icon: Package,
+    subItems: [
+      { label: "All Products", href: "/dashboard/products" },
+      { label: "Add New", href: "/dashboard/products/new" },
+    ]
+  },
+  {
+    label: "Categories",
+    icon: Tags,
+    subItems: [
+      { label: "All Categories", href: "/dashboard/categories" },
+      { label: "Add New", href: "/dashboard/categories/new" },
+    ]
+  },
+  {
+    label: "Orders",
+    icon: ShoppingCart,
+    subItems: [
+      { label: "All Orders", href: "/dashboard/orders" },
+      { label: "Pending", href: "/dashboard/orders/pending" },
+      { label: "Shipped", href: "/dashboard/orders/shipped" },
+    ]
+  },
+  // ...existing routes...
+];
+
+export function Sidebar() {
+  const pathname = usePathname();
+  const [openItems, setOpenItems] = useState<string[]>([]);
+
+  const toggleItem = (label: string) => {
+    setOpenItems(prev => 
+      prev.includes(label) 
+        ? prev.filter(item => item !== label)
+        : [...prev, label]
+    );
+  };
 
   return (
-    <div className={cn(
-      "h-full border-r bg-slate-50/50 pt-20",
-      collapsed ? "w-[80px]" : "w-[250px]"
-    )}>
-      <div className="flex h-full flex-col gap-4">
-        <Button
-          variant="ghost"
-          className="ml-2"
-          onClick={() => setCollapsed(!collapsed)}
-        >
-          <Menu className="h-6 w-6" />
-        </Button>
-        <div className="flex flex-col gap-2 px-2">
-          {routes.map((route) => {
-            if (route.role && user?.role && !route.role.includes(user.role)) {
-              return null;
-            }
-
-            return (
+    <div className="h-full border-r bg-slate-50/50 pt-20">
+      <div className="flex flex-col gap-2">
+        {sidebarItems.map((item) => (
+          <div key={item.label}>
+            {item.subItems ? (
+              <>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-between px-4",
+                    openItems.includes(item.label) && "bg-slate-100"
+                  )}
+                  onClick={() => toggleItem(item.label)}
+                >
+                  <div className="flex items-center">
+                    <item.icon className="h-5 w-5 mr-2" />
+                    {item.label}
+                  </div>
+                  <ChevronDown 
+                    className={cn(
+                      "h-4 w-4 transition-transform",
+                      openItems.includes(item.label) && "transform rotate-180"
+                    )} 
+                  />
+                </Button>
+                {openItems.includes(item.label) && (
+                  <div className="pl-6 py-2 space-y-1">
+                    {item.subItems.map((subItem) => (
+                      <Link
+                        key={subItem.href}
+                        href={subItem.href}
+                        className={cn(
+                          "flex items-center text-sm px-4 py-2 rounded-lg transition-colors",
+                          pathname === subItem.href
+                            ? "bg-slate-100 text-slate-900"
+                            : "text-slate-600 hover:bg-slate-100"
+                        )}
+                      >
+                        {subItem.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
               <Link
-                key={route.href}
-                href={route.href}
+                href={item.href!}
                 className={cn(
-                  "flex items-center gap-x-2 text-slate-500 text-sm font-medium px-3 py-2 hover:text-slate-600 hover:bg-slate-100/50 rounded-lg transition-all",
-                  pathname === route.href && "text-slate-700 bg-slate-100"
+                  "flex items-center px-4 py-2 text-sm rounded-lg transition-colors",
+                  pathname === item.href
+                    ? "bg-slate-100 text-slate-900"
+                    : "text-slate-600 hover:bg-slate-100"
                 )}
               >
-                <route.icon className={cn("h-5 w-5", route.color)} />
-                {!collapsed && <span>{route.label}</span>}
+                <item.icon className="h-5 w-5 mr-2" />
+                {item.label}
               </Link>
-            );
-          })}
-        </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

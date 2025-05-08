@@ -17,38 +17,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Edit, MoreVertical, Search } from "lucide-react";
+import { Edit, MoreVertical, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import { Product } from "@/services/productService";
+import { useProductStore } from "@/store/useProductStore";
 
-type ProductStatus = "published" | "draft" | "archived";
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  discountedPrice?: number;
-  stock: number;
-  status: ProductStatus;
-  category: string;
-  subCategories: string[];
-  images: string[];
-  shortDescription: string;
-  createdAt: Date;
+interface ProductsTableProps {
+  products: Product[];
 }
 
-export function ProductsTable() {
+export function ProductsTable({ products }: ProductsTableProps) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-
-  const StatusBadge = ({ status }: { status: ProductStatus }) => {
-    const variants = {
-      published: "success",
-      draft: "secondary",
-      archived: "destructive",
-    };
-    return <Badge variant={variants[status]}>{status}</Badge>;
-  };
+  const { deleteProduct } = useProductStore();
 
   return (
     <div className="space-y-4">
@@ -71,16 +54,55 @@ export function ProductsTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Product</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Stock</TableHead>
+              <TableHead>Image</TableHead>
+              <TableHead>Name</TableHead>
               <TableHead>Price</TableHead>
-              <TableHead>Category</TableHead>
+              <TableHead>Stock</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {/* Map through products */}
+            {products.map((product) => (
+              <TableRow key={product._id}>
+                <TableCell>
+                  {product.image && (
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      width={50}
+                      height={50}
+                      className="rounded-md"
+                    />
+                  )}
+                </TableCell>
+                <TableCell>{product.name}</TableCell>
+                <TableCell>৳{product.price}</TableCell>
+                <TableCell>{product.stock}</TableCell>
+                <TableCell>
+                  <Badge variant={product.status === "active" ? "success" : "secondary"}>
+                    {product.status}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-2">
+                    <Link href={`/dashboard/products/edit/${product._id}`}>
+                      <Button size="sm" variant="ghost">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-red-500"
+                      onClick={() => deleteProduct(product._id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>
@@ -93,14 +115,14 @@ export function ProductsTable() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setPage(p => Math.max(1, p - 1))}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
           >
             Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setPage(p => p + 1)}
+            onClick={() => setPage((p) => p + 1)}
           >
             Next
           </Button>
