@@ -38,13 +38,20 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  _request: Request,
+  context: { params: { id: string } }
 ) {
   try {
     await connectToDatabase();
-    await mongoose.models.Category.findByIdAndDelete(params.id);
-    return NextResponse.json({ message: "Category deleted" });
+    const id = context.params.id;
+    const categoryToDelete = await mongoose.models.Category.findById(id);
+    
+    if (!categoryToDelete) {
+      return NextResponse.json({ error: "Category not found" }, { status: 404 });
+    }
+
+    await mongoose.models.Category.findByIdAndDelete(id);
+    return NextResponse.json({ message: "Category deleted successfully" });
   } catch (error) {
     return NextResponse.json({ error: "Failed to delete category" }, { status: 500 });
   }

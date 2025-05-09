@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import { useCategoryStore } from "@/store/useCategoryStore";
 import { CategoryForm } from "@/components/categories/CategoryForm";
 import { useParams } from "next/navigation";
+import type { Category } from "@/services/categoryService";
 
 export default function EditCategoryPage() {
   const { id } = useParams();
   const { categories, fetchCategories } = useCategoryStore();
-  const [category, setCategory] = useState(null);
+  const [category, setCategory] = useState<Category | undefined>(undefined);
 
   useEffect(() => {
     fetchCategories();

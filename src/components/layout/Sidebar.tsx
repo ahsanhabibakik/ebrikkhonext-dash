@@ -3,7 +3,6 @@
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
-  Home,
   Package,
   Users,
   ShoppingCart,
@@ -12,7 +11,7 @@ import {
   ChevronDown,
   Tags,
   Menu,
-  PenTool,
+  Pencil,
   Bell,
   LayoutDashboard,
   ChevronRight
@@ -73,7 +72,7 @@ const sidebarItems: SidebarItemProps[] = [
   },
   {
     label: "Content",
-    icon: PenTool,
+    icon: Pencil,
     subItems: [
       { label: "Pages", href: "/dashboard/content/pages" },
       { label: "Blog Posts", href: "/dashboard/content/blog" },

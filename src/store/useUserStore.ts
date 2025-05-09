@@ -19,7 +19,7 @@ interface UserState {
 type UserStatePersist = PersistOptions<UserState>;
 
 export const useUserStore = create<UserState>()(
-  persist<UserState, [], [], UserState>(
+  persist(
     (set) => ({
       user: null,
       isAuthenticated: false,
