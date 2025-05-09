@@ -20,7 +20,14 @@ export interface Product {
 
 export const productService = {
   getAll: () => fetchApi<Product[]>('/products'),
-  getById: (id: string) => fetchApi<Product>(`/products/${id}`),
+  getById: async (id: string) => {
+    try {
+      const response = await fetchApi<any>(`/products/${id}`);
+      return response;
+    } catch (error) {
+      throw new Error("Failed to fetch product");
+    }
+  },
   create: (data: Omit<Product, '_id'>) => 
     fetchApi<Product>('/products', {
       method: 'POST',

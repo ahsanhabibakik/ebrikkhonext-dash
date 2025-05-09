@@ -20,15 +20,15 @@ export async function GET(
 }
 
 export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params: { id } }: { params: { id: string } }
 ) {
   try {
     await connectToDatabase();
     const data = await request.json();
     const category = await mongoose.models.Category.findByIdAndUpdate(
-      params.id,
-      data,
+      id,
+      { ...data, updatedAt: new Date() },
       { new: true }
     );
     return NextResponse.json(category);
@@ -38,20 +38,19 @@ export async function PUT(
 }
 
 export async function DELETE(
-  _request: Request,
-  context: { params: { id: string } }
+  request: Request,
+  { params: { id } }: { params: { id: string } }
 ) {
   try {
     await connectToDatabase();
-    const id = context.params.id;
-    const categoryToDelete = await mongoose.models.Category.findById(id);
-    
-    if (!categoryToDelete) {
-      return NextResponse.json({ error: "Category not found" }, { status: 404 });
+    const hasChildren = await mongoose.models.Category.findOne({ parent: id });
+    if (hasChildren) {
+      return NextResponse.json({ 
+        error: "Cannot delete category with subcategories" 
+      }, { status: 400 });
     }
-
     await mongoose.models.Category.findByIdAndDelete(id);
-    return NextResponse.json({ message: "Category deleted successfully" });
+    return NextResponse.json({ message: "Category deleted" });
   } catch (error) {
     return NextResponse.json({ error: "Failed to delete category" }, { status: 500 });
   }

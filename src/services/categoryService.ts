@@ -10,6 +10,8 @@ export interface Category {
   status: 'active' | 'inactive';
   createdAt?: string;
   updatedAt?: string;
+  level?: number;
+  parentPath?: string[];
 }
 
 export const categoryService = {
@@ -29,4 +31,27 @@ export const categoryService = {
     fetchApi<void>(`/categories/${id}`, {
       method: 'DELETE',
     }),
+};
+
+export const categoryUtils = {
+  getCategoryPath(categories: Category[], categoryId: string): string[] {
+    const path: string[] = [];
+    let currentId = categoryId;
+
+    while (currentId) {
+      const category = categories.find(c => c._id === currentId);
+      if (category) {
+        path.unshift(category.name);
+        currentId = category.parent!;
+      } else {
+        break;
+      }
+    }
+
+    return path;
+  },
+
+  getCategoryLevel(categories: Category[], categoryId: string): number {
+    return this.getCategoryPath(categories, categoryId).length;
+  }
 };

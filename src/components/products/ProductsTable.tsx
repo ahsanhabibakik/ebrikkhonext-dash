@@ -1,133 +1,112 @@
 "use client";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import { Edit, MoreVertical, Search, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Edit, Trash2, Eye, ImageOff } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
-import { Product } from "@/services/productService";
-import { useProductStore } from "@/store/useProductStore";
+import { formatPrice } from "@/lib/utils";
 
-interface ProductsTableProps {
-  products: Product[];
-}
-
-export function ProductsTable({ products }: ProductsTableProps) {
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const { deleteProduct } = useProductStore();
-
+export function ProductsTable({ products }) {
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-4 justify-between">
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search products..."
-            className="pl-8"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <div className="flex gap-2">
-          {/* Add filters here */}
-        </div>
-      </div>
-
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Image</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Price</TableHead>
-              <TableHead>Stock</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {products.map((product) => (
-              <TableRow key={product._id}>
-                <TableCell>
-                  {product.image && (
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      width={50}
-                      height={50}
-                      className="rounded-md"
-                    />
-                  )}
-                </TableCell>
-                <TableCell>{product.name}</TableCell>
-                <TableCell>৳{product.price}</TableCell>
-                <TableCell>{product.stock}</TableCell>
-                <TableCell>
-                  <Badge variant={product.status === "active" ? "success" : "secondary"}>
-                    {product.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Link href={`/dashboard/products/edit/${product._id}`}>
-                      <Button size="sm" variant="ghost">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-red-500"
-                      onClick={() => deleteProduct(product._id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Image</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead>Category</TableHead>
+            <TableHead>Price</TableHead>
+            <TableHead>Stock</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {products.map((product) => (
+            <TableRow key={product._id}>
+              <TableCell>
+                {product.images?.[0] ? (
+                  <img 
+                    src={product.images[0]} 
+                    alt={product.name}
+                    className="h-12 w-12 rounded-md object-cover"
+                  />
+                ) : (
+                  <div className="h-12 w-12 rounded-md bg-gray-100 flex items-center justify-center">
+                    <ImageOff className="h-6 w-6 text-gray-400" />
                   </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Showing {/* Add pagination info */}
-        </p>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+                )}
+              </TableCell>
+              <TableCell className="font-medium">{product.name || "Unnamed Product"}</TableCell>
+              <TableCell>
+                {product.category || "Uncategorized"}
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-col">
+                  <span className="font-medium">
+                    ৳{formatPrice(product.price || 0)}
+                  </span>
+                  {product.discountedPrice && product.discountedPrice < product.price && (
+                    <span className="text-sm text-muted-foreground line-through">
+                      ৳{formatPrice(product.discountedPrice)}
+                    </span>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell>
+                <Badge 
+                  variant={
+                    !product.stock ? "destructive" :
+                    product.stock <= 5 ? "warning" : "success"
+                  }
+                >
+                  {product.stock || 0} in stock
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <Badge 
+                  variant={
+                    !product.status || product.status === 'inactive' ? "secondary" :
+                    product.status === 'out-of-stock' ? "destructive" : "success"
+                  }
+                >
+                  {product.status || "inactive"}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-right space-x-2">
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={`/dashboard/products/${product._id}`}>
+                    <Eye className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={`/dashboard/products/edit/${product._id}`}>
+                    <Edit className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-red-500"
+                  onClick={() => {
+                    // Add delete confirmation dialog
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+          {products.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                No products found
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
     </div>
   );
 }
