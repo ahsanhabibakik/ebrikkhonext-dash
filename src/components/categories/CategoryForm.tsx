@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams as useRouterSearchParams } from 'next/navigation';
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -29,7 +29,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { ImageUpload } from "@/components/ui/image-upload";
-import { Loader2 } from "lucide-react";
+// Using text instead of icon for loading state
 import { toast } from "sonner";
 import { useCategoryStore } from "@/store/useCategoryStore";
 
@@ -46,19 +46,20 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function CategoryForm({ initialData }: { initialData?: Category }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const parentFromUrl = searchParams.get('parent');
+  const searchParams = useRouterSearchParams();
+  const parentFromUrl = searchParams ? searchParams.get('parent') : null;
   const { categories, addCategory, updateCategory } = useCategoryStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     defaultValues: {
       name: initialData?.name || "",
       description: initialData?.description || "",
-      parent: initialData?.parent || parentFromUrl || "none",
-      status: initialData?.status === "active",
+      parent: initialData?.parent || parentFromUrl || "",
+      status: initialData ? initialData.status === "active" : true,
       image: initialData?.image || "",
+      slug: initialData?.slug || "",
     },
   });
 
@@ -67,14 +68,15 @@ export function CategoryForm({ initialData }: { initialData?: Category }) {
   const onSubmit = async (data: FormValues) => {
     try {
       setIsSubmitting(true);
-      // Generate slug from name if not provided
-      const slug = data.slug || data.name.toLowerCase().replace(/\s+/g, '-');
       
+      // Prepare category data with required fields
       const categoryData = {
-        ...data,
-        slug,
-        parent: data.parent === "none" ? undefined : data.parent,
-        status: data.status ? "active" : "inactive",
+        name: data.name,
+        description: data.description,
+        parent: data.parent || undefined,
+        status: data.status ? "active" as const : "inactive" as const,
+        image: data.image,
+        slug: data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '')
       };
 
       if (initialData) {
@@ -220,7 +222,7 @@ export function CategoryForm({ initialData }: { initialData?: Category }) {
           >
             {isSubmitting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <span className="mr-2">⏳</span>
                 {initialData ? "Updating..." : "Creating..."}
               </>
             ) : (
